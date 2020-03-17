@@ -1,21 +1,25 @@
 package com.costello.sudokugame.ui.view.custom
 
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.Rect
+import android.content.res.AssetManager
+import android.graphics.*
+import android.graphics.fonts.FontFamily
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import androidx.core.content.res.ResourcesCompat
+import com.costello.sudokugame.R
 import com.costello.sudokugame.contract.contract.BoardView
 import com.costello.sudokugame.data.SudokuBoard
-import java.lang.String
+import kotlinx.android.synthetic.main.activity_main.*
+import javax.xml.parsers.ParserConfigurationException
 
 
 class SudokuBoardView(context: Context, attrs: AttributeSet) : View(context, attrs), BoardView {
     private var cellSize: Float = 0f
     private var boardSize: Float = 0f
+    private var rect = RectF(0f, 0f, 0f, 0f)
+    private var cornerRadius = 0f
 
     var rowSelected: Int = -1
     var colSelected: Int = -1
@@ -26,12 +30,8 @@ class SudokuBoardView(context: Context, attrs: AttributeSet) : View(context, att
     private val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.BLACK
         style = Paint.Style.STROKE
-        strokeWidth = 2F
-    }
-    private val thickLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.BLACK
-        style = Paint.Style.STROKE
-        strokeWidth = 6F
+        isAntiAlias = true
+        strokeWidth = 0.4F
     }
     private val cellSelection = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#606e6e6e")
@@ -45,7 +45,26 @@ class SudokuBoardView(context: Context, attrs: AttributeSet) : View(context, att
         color = Color.BLACK
     }
     private val primeTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.BLUE
+        color = Color.BLACK
+    }
+
+    //TODO round rectangles
+    val cellFill = Paint().apply {
+        style = Paint.Style.FILL_AND_STROKE
+        color = Color.parseColor("#30cdcdcd")
+        isAntiAlias = true
+    }
+    val cellStrokeGreen = Paint().apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 1f
+        isAntiAlias = true
+        color = Color.parseColor("#8012a690")
+    }
+    val cellStrokeRed = Paint().apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 1f
+        isAntiAlias = true
+        color = Color.parseColor("#80b50d0d")
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -62,12 +81,40 @@ class SudokuBoardView(context: Context, attrs: AttributeSet) : View(context, att
 
         cellSize = height.toFloat()/9
         boardSize = height.toFloat()
-        textPaint.textSize = cellSize
+        textPaint.textSize = (cellSize*0.7).toFloat()
         primeTextPaint.textSize = cellSize
 
-        drawBoard(canvas)
+        rect = RectF((cellSize*0.05).toFloat(), (cellSize*0.05).toFloat(), (cellSize*0.95).toFloat(), (cellSize*0.95).toFloat())
+        cornerRadius = (cellSize*0.95).toFloat()/4
+
+//        for(i in 1..8){
+//            if(i%3 == 0){
+//                canvas.drawLine(0f, cellSize*i, boardSize, cellSize*i, linePaint)
+//                canvas.drawLine(cellSize*i, 0f, cellSize*i, boardSize, linePaint)
+//            }
+//        }
+
         drawSelection(canvas)
         fillCells(canvas)
+        drawBoard(canvas)
+//        drawSelection(canvas)
+//        canvas.translate(cellSize*colSelected, cellSize*rowSelected)
+//        canvas.drawRoundRect(rect, cornerRadius, cornerRadius, cellSelection)
+//        canvas.translate(-(cellSize*colSelected), -(cellSize*rowSelected))
+
+//        for(i in 0..8){
+//            for(j in 0..8){
+//                canvas.drawRoundRect(rect, cornerRadius, cornerRadius, cellFill)
+//
+//                when(sudokuBoard!!.getCell(i, j).baseCell){
+//                    true -> {
+//                        canvas.drawRoundRect(rect, cornerRadius, cornerRadius, cellStrokeGreen)
+//                    }
+//                }
+//                canvas.translate(cellSize, 0f)
+//            }
+//            canvas.translate(-(cellSize*9), cellSize)
+//        }
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -95,63 +142,25 @@ class SudokuBoardView(context: Context, attrs: AttributeSet) : View(context, att
     //TODO change draw style (white / clean / green + red / draw boxes not grid)
 
     private fun drawBoard(canvas: Canvas){
-        canvas.apply {
-            for(i in 1..8){
-                if(i%3 == 0){
-                    drawLine(
-                        0f,
-                        cellSize*i, boardSize,
-                        cellSize*i,
-                        thickLinePaint
-                    )
-                    drawLine(
-                        cellSize*i,
-                        0f,
-                        cellSize*i,
-                        boardSize,
-                        thickLinePaint)
-                } else {
-                    drawLine(
-                        0f,
-                        cellSize*i,
-                        boardSize,
-                        cellSize*i,
-                        linePaint
-                    )
-                    drawLine(
-                        cellSize*i,
-                        0f,
-                        cellSize*i,
-                        boardSize,
-                        linePaint
-                    )
-                }
+        for(i in 1..8){
+            if(i%3 == 0){
+                canvas.drawLine(0f, cellSize*i, boardSize, cellSize*i, linePaint)
+                canvas.drawLine(cellSize*i, 0f, cellSize*i, boardSize, linePaint)
             }
+        }
 
-            for(i in 1..8){
-                for(j in 1..8){
-                    if (i == rowSelected && j == colSelected)
-                        canvas.drawRect(
-                            cellSize * j,
-                            cellSize * i,
-                            cellSize * j + cellSize,
-                            cellSize * i + cellSize,
-                            cellSelection
-                        )
-                    else if (i == rowSelected && j != colSelected)
-                        canvas.drawRect(
-                            cellSize * j,
-                            cellSize * i,
-                            cellSize * j + cellSize, cellSize * i + cellSize, cellSelectionHelper
-                        )
-                    else if (i != rowSelected && j == colSelected)
-                        canvas.drawRect(
-                            cellSize * j,
-                            cellSize * i,
-                            cellSize * j + cellSize, cellSize * i + cellSize, cellSelectionHelper
-                        )
+        for(i in 0..8){
+            for(j in 0..8){
+                canvas.drawRoundRect(rect, cornerRadius, cornerRadius, cellFill)
+
+                when(sudokuBoard!!.getCell(i, j).baseCell){
+                    true -> {
+                        canvas.drawRoundRect(rect, cornerRadius, cornerRadius, cellStrokeGreen)
+                    }
                 }
+                canvas.translate(cellSize, 0f)
             }
+            canvas.translate(-(cellSize*9), cellSize)
         }
     }
     private fun drawSelection(canvas: Canvas){
@@ -164,7 +173,7 @@ class SudokuBoardView(context: Context, attrs: AttributeSet) : View(context, att
                     cellSize * i.toFloat(),
                     cellSize * j + cellSize,
                     cellSize * i + cellSize,
-                    cellSelection
+                    cellSelectionHelper
                 ) else if (i == rowSelected && j != colSelected) canvas.drawRect(
                     cellSize * j.toFloat(),
                     cellSize * i.toFloat(),
@@ -180,6 +189,10 @@ class SudokuBoardView(context: Context, attrs: AttributeSet) : View(context, att
                 )
             }
         }
+
+        canvas.translate(cellSize*colSelected, cellSize*rowSelected)
+        canvas.drawRoundRect(rect, cornerRadius, cornerRadius, cellSelection)
+        canvas.translate(-(cellSize*colSelected), -(cellSize*rowSelected))
     }
     private fun fillCells(canvas: Canvas){
         for (i in 0..8) {
@@ -188,7 +201,7 @@ class SudokuBoardView(context: Context, attrs: AttributeSet) : View(context, att
 
                 if(cell.value == 0) continue
 
-                textPaint.color = if(cell.baseCell) Color.BLUE else Color.BLACK
+                textPaint.color = if(cell.baseCell) Color.BLACK else Color.BLACK
 
                 val textBounds = Rect()
                 textPaint.getTextBounds(cell.value.toString(), 0, cell.value.toString().length, textBounds)

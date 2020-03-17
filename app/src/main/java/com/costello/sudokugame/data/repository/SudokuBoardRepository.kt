@@ -33,7 +33,7 @@ object SudokuBoardRepository {
             }
         }
 
-    while (counter < 1) {
+    while (counter < 60) {
         x = random.nextInt(9)
         y = random.nextInt(9)
         if (puzzle[x][y] != 0) {

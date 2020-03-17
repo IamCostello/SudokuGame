@@ -1,4 +1,10 @@
-<ripple xmlns:android="http://schemas.android.com/apk/res/android"
-    android:color="?android:colorControlHighlight">
-    <item android:drawable="@drawable/canvas_shape" />
-</ripple>
+<shape
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <corners android:radius="5dp" />
+    <solid android:color="@android:color/white" />
+    <stroke
+        android:width="1dip"
+        android:color="#ffffff" />
+</shape>
